@@ -17,28 +17,13 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SQ_URL }}
-      - name: Run AccuKnox SAST job
-        env:
-          SQ_URL: ${{ secrets.SQ_URL }}
-          SQ_AUTH_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          docker run --rm \
-            -e SQ_URL=${{ secrets.SQ_URL }} \
-            -e SQ_AUTH_TOKEN=${{ secrets.SONAR_TOKEN }} \
-            -e REPORT_PATH=/app/data/ \
-            -e SQ_PROJECTS="^github_sonar_example$" \
-            -v $PWD:/app/data/ \
-            accuknox/sastjob:latest
-      - name: Upload SAST reports
-        env:
-          AK_URL: ${{ secrets.AK_URL }}
-          TENANT_ID: ${{ secrets.TENANT_ID }}
-          AK_TOK: ${{ secrets.AK_TOK }}
-        run: |
-          cd ${GITHUB_WORKSPACE}
-          for file in `ls -1 SQ-*.json`; do
-            curl --location --request POST "<https://$AK_URL/api/v1/artifact/?tenant_id=$TENANT_ID&data_type=SQ&save_to_s3=false>" \
-              --header "Tenant-Id: $TENANT_ID" \
-              --header "Authorization: Bearer $AK_TOK" \
-              --form "file=@\"$file\""
-          done
+      - name: Run AccuKnox SAST
+        uses: accuknox/accuknox-sast@v1.0.0
+        with:
+          sonar_token: ${{ secrets.SONAR_TOKEN }}
+          sonar_host_url: ${{ secrets.SQ_URL }}
+          accuknox_endpoint: ${{ secrets.AK_URL }}
+          tenant_id: ${{ secrets.TENANT_ID }}
+          accuknox_token: ${{ secrets.AK_TOKEN }}
+          sonar_project_key: "harrywangMETA_accuknox_sast_test"
+
